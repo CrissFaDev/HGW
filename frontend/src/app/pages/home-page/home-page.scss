@@ -183,18 +183,30 @@ p {
 
 .portrait {
   aspect-ratio: 4 / 5;
-  background:
-    linear-gradient(135deg, rgba(29, 106, 58, 0.24), rgba(217, 249, 157, 0.42)),
-    #edf8e8;
+  background: #edf8e8;
   border: 1px solid #d5e8d1;
   border-radius: 8px;
   display: grid;
+  overflow: hidden;
   place-items: end start;
   padding: 24px;
+  position: relative;
+
+  img {
+    height: 100%;
+    inset: 0;
+    object-fit: cover;
+    position: absolute;
+    width: 100%;
+  }
 
   div {
+    background: rgba(237, 248, 232, 0.88);
+    border-radius: 8px;
     display: grid;
     gap: 3px;
+    padding: 14px 16px;
+    position: relative;
   }
 
   span,

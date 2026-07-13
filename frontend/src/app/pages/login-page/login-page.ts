@@ -18,8 +18,8 @@ export class LoginPage {
   protected readonly error = signal('');
 
   protected readonly form = this.formBuilder.nonNullable.group({
-    email: ['admin@hgw.com', [Validators.required, Validators.email]],
-    password: ['Admin12345', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', Validators.required],
   });
 
   submit(): void {

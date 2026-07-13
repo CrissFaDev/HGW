@@ -55,12 +55,14 @@ Rutas publicas:
 
 Credenciales iniciales de desarrollo:
 
+Las credenciales reales no se guardan en Git. Configuralas en variables de entorno:
+
 ```txt
-Correo: admin@hgw.com
-Contrasena: Admin12345
+ADMIN_EMAIL
+ADMIN_PASSWORD
 ```
 
-Puedes cambiarlas en `backend/.env` con `ADMIN_EMAIL` y `ADMIN_PASSWORD` antes de crear el primer usuario.
+En local puedes definirlas en `backend/.env`; en Render se configuran desde Environment.
 
 ## Despliegue recomendado
 
