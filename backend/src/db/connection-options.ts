@@ -6,6 +6,16 @@ function sslEnabled(params?: URLSearchParams): boolean {
   return process.env.DB_SSL === 'true' || sslMode === 'REQUIRED' || sslMode === 'require';
 }
 
+function getSslOptions(params?: URLSearchParams): ConnectionOptions['ssl'] {
+  if (!sslEnabled(params)) {
+    return undefined;
+  }
+
+  return {
+    rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false',
+  };
+}
+
 export function getDatabaseOptions(includeDatabase = true): ConnectionOptions {
   const databaseUrl = process.env.DATABASE_URL || process.env.MYSQL_URL;
 
@@ -19,7 +29,7 @@ export function getDatabaseOptions(includeDatabase = true): ConnectionOptions {
       user: decodeURIComponent(url.username),
       password: decodeURIComponent(url.password),
       database: includeDatabase ? database : undefined,
-      ssl: sslEnabled(url.searchParams) ? { rejectUnauthorized: true } : undefined,
+      ssl: getSslOptions(url.searchParams),
     };
   }
 
@@ -29,7 +39,7 @@ export function getDatabaseOptions(includeDatabase = true): ConnectionOptions {
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: includeDatabase ? process.env.DB_NAME || 'pag_hgw' : undefined,
-    ssl: sslEnabled() ? { rejectUnauthorized: true } : undefined,
+    ssl: getSslOptions(),
   };
 }
 
