@@ -1,0 +1,475 @@
+<section class="admin-shell">
+  <aside>
+    <div class="admin-brand">
+      <span>HGW</span>
+      <strong>Administrador</strong>
+      <small>{{ authService.user()?.email }}</small>
+    </div>
+
+    <button type="button" [class.active]="tab() === 'products'" (click)="tab.set('products')">
+      Productos
+    </button>
+    <button type="button" [class.active]="tab() === 'categories'" (click)="tab.set('categories')">
+      Categorias
+    </button>
+    <button type="button" [class.active]="tab() === 'discounts'" (click)="tab.set('discounts')">
+      Descuentos
+    </button>
+    <button type="button" class="logout" (click)="authService.logout()">Salir</button>
+  </aside>
+
+  <main>
+    <header class="page-header">
+      <div>
+        <p>Sistema administrativo</p>
+        <h1>{{ tab() === 'products' ? 'Productos' : tab() === 'categories' ? 'Categorias' : 'Descuentos' }}</h1>
+      </div>
+      <span>{{ products().length }} productos · {{ categories().length }} categorias · {{ discounts().length }} descuentos</span>
+    </header>
+
+    @if (message()) {
+      <p class="message">{{ message() }}</p>
+    }
+
+    @if (tab() === 'products') {
+      <section class="two-column">
+        <form [formGroup]="productForm" (ngSubmit)="saveProduct()">
+          <h2>Crear producto</h2>
+
+          <label>
+            Categoria
+            <select formControlName="categoryId">
+              @for (category of categories(); track category.id) {
+                <option [value]="category.id">{{ category.name }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            Nombre
+            <input formControlName="name" />
+          </label>
+
+          <label>
+            SKU
+            <input formControlName="sku" />
+          </label>
+
+          <label>
+            Descripcion
+            <textarea formControlName="description" rows="4"></textarea>
+          </label>
+
+          <label>
+            Instrucciones de cuidado
+            <input formControlName="careInstructions" />
+          </label>
+
+          <div class="form-row">
+            <label>
+              Precio
+              <input type="number" formControlName="price" min="0" />
+            </label>
+            <label>
+              Stock
+              <input type="number" formControlName="stock" min="0" />
+            </label>
+          </div>
+
+          <div class="form-row">
+            <label>
+              Posicion
+              <input type="number" formControlName="position" min="0" />
+            </label>
+            <label>
+              Imagen
+              <input type="file" accept="image/*" (change)="onImageSelected($event)" />
+            </label>
+          </div>
+
+          <label class="check">
+            <input type="checkbox" formControlName="isActive" />
+            Publico
+          </label>
+
+          <div class="actions">
+            <button type="submit" [disabled]="loading()">Guardar</button>
+            <button type="button" class="secondary" (click)="resetProductForm()">Limpiar</button>
+          </div>
+        </form>
+
+        <div class="helper-panel">
+          <h2>Fotos de producto</h2>
+          <p>
+            La imagen se selecciona aqui y el backend la sube a Cloudinary. La tabla muestra la foto guardada
+            para confirmar que el producto tiene imagen publicada.
+          </p>
+          <button type="button" class="secondary" (click)="tab.set('categories')">Administrar categorias</button>
+        </div>
+      </section>
+
+      <section class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Foto</th>
+              <th>Producto</th>
+              <th>Categoria</th>
+              <th>Precio</th>
+              <th>Stock</th>
+              <th>Publicado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (product of products(); track product.id; let i = $index) {
+              <tr>
+                <td>{{ i + 1 }}</td>
+                <td>
+                  @if (product.imageUrl) {
+                    <img class="admin-thumb" [src]="product.imageUrl" [alt]="product.name" />
+                  } @else {
+                    <span class="thumb-empty">Sin foto</span>
+                  }
+                </td>
+                <td>
+                  <strong>{{ product.name }}</strong>
+                  <small>{{ product.sku || 'Sin SKU' }}</small>
+                </td>
+                <td>{{ product.categoryName }}</td>
+                <td>$ {{ product.price | number:'1.0-0' }}</td>
+                <td>{{ product.stock }}</td>
+                <td>{{ product.isActive ? 'Si' : 'No' }}</td>
+                <td>
+                  <button type="button" class="secondary" (click)="editProduct(product)">Editar</button>
+                  <button type="button" class="danger" (click)="requestDeleteProduct(product)">Eliminar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    @if (tab() === 'categories') {
+      <section class="two-column">
+        <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
+          <h2>Crear categoria</h2>
+          <label>
+            Nombre
+            <input formControlName="name" />
+          </label>
+          <label>
+            Descripcion
+            <textarea formControlName="description" rows="3"></textarea>
+          </label>
+          <label>
+            Posicion
+            <input type="number" formControlName="position" min="0" />
+          </label>
+          <label class="check">
+            <input type="checkbox" formControlName="isActive" />
+            Activa
+          </label>
+          <div class="actions">
+            <button type="submit">Guardar</button>
+            <button type="button" class="secondary" (click)="resetCategoryForm()">Limpiar</button>
+          </div>
+        </form>
+
+        <div class="helper-panel">
+          <h2>Uso de categorias</h2>
+          <p>
+            Las categorias organizan la pagina publica de productos. Si una categoria tiene productos asociados,
+            primero mueve o elimina esos productos antes de borrar la categoria.
+          </p>
+        </div>
+      </section>
+
+      <section class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Categoria</th>
+              <th>Descripcion</th>
+              <th>Posicion</th>
+              <th>Activa</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (category of categories(); track category.id; let i = $index) {
+              <tr>
+                <td>{{ i + 1 }}</td>
+                <td><strong>{{ category.name }}</strong></td>
+                <td>{{ category.description || 'Sin descripcion' }}</td>
+                <td>{{ category.position }}</td>
+                <td>{{ category.isActive ? 'Si' : 'No' }}</td>
+                <td>
+                  <button type="button" class="secondary" (click)="editCategory(category)">Editar</button>
+                  <button type="button" class="danger" (click)="requestDeleteCategory(category)">Eliminar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    @if (tab() === 'discounts') {
+      <section class="two-column">
+        <form [formGroup]="discountForm" (ngSubmit)="saveDiscount()">
+          <h2>Crear descuento</h2>
+
+          <label>
+            Producto
+            <select formControlName="productId">
+              @for (product of products(); track product.id) {
+                <option [value]="product.id">{{ product.name }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            Titulo
+            <input formControlName="title" />
+          </label>
+
+          <label>
+            Porcentaje
+            <input type="number" formControlName="percentage" min="1" max="100" />
+          </label>
+
+          <div class="form-row">
+            <label>
+              Inicio
+              <input type="date" formControlName="startsAt" />
+            </label>
+            <label>
+              Fin
+              <input type="date" formControlName="endsAt" />
+            </label>
+          </div>
+
+          <label class="check">
+            <input type="checkbox" formControlName="isActive" />
+            Activo
+          </label>
+
+          <div class="actions">
+            <button type="submit" [disabled]="loading()">Guardar</button>
+            <button type="button" class="secondary" (click)="resetDiscountForm()">Limpiar</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Producto</th>
+              <th>Descuento</th>
+              <th>Porcentaje</th>
+              <th>Precio final</th>
+              <th>Activo</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (discount of discounts(); track discount.id; let i = $index) {
+              <tr>
+                <td>{{ i + 1 }}</td>
+                <td>{{ discount.productName }}</td>
+                <td>{{ discount.title }}</td>
+                <td>{{ discount.percentage }}%</td>
+                <td>$ {{ discount.finalPrice | number:'1.0-0' }}</td>
+                <td>{{ discount.isActive ? 'Si' : 'No' }}</td>
+                <td>
+                  <button type="button" class="secondary" (click)="editDiscount(discount)">Editar</button>
+                  <button type="button" class="danger" (click)="requestDeleteDiscount(discount)">Eliminar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+  </main>
+</section>
+
+@if (productModalOpen()) {
+  <section class="modal-backdrop" role="dialog" aria-modal="true">
+    <form class="modal-panel" [formGroup]="editProductForm" (ngSubmit)="saveProductEdit()">
+      <header>
+        <h2>Editar producto</h2>
+        <button type="button" class="icon-close" (click)="closeModals()">x</button>
+      </header>
+
+      <label>
+        Categoria
+        <select formControlName="categoryId">
+          @for (category of categories(); track category.id) {
+            <option [value]="category.id">{{ category.name }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Nombre
+        <input formControlName="name" />
+      </label>
+
+      <label>
+        SKU
+        <input formControlName="sku" />
+      </label>
+
+      <label>
+        Descripcion
+        <textarea formControlName="description" rows="4"></textarea>
+      </label>
+
+      <label>
+        Instrucciones de cuidado
+        <input formControlName="careInstructions" />
+      </label>
+
+      <div class="form-row">
+        <label>
+          Precio
+          <input type="number" formControlName="price" min="0" />
+        </label>
+        <label>
+          Stock
+          <input type="number" formControlName="stock" min="0" />
+        </label>
+      </div>
+
+      <div class="form-row">
+        <label>
+          Posicion
+          <input type="number" formControlName="position" min="0" />
+        </label>
+        <label>
+          Cambiar imagen
+          <input type="file" accept="image/*" (change)="onEditImageSelected($event)" />
+        </label>
+      </div>
+
+      <label class="check">
+        <input type="checkbox" formControlName="isActive" />
+        Publico
+      </label>
+
+      <div class="actions">
+        <button type="submit" [disabled]="loading()">Guardar cambios</button>
+        <button type="button" class="secondary" (click)="closeModals()">Cancelar</button>
+      </div>
+    </form>
+  </section>
+}
+
+@if (categoryModalOpen()) {
+  <section class="modal-backdrop" role="dialog" aria-modal="true">
+    <form class="modal-panel" [formGroup]="editCategoryForm" (ngSubmit)="saveCategoryEdit()">
+      <header>
+        <h2>Editar categoria</h2>
+        <button type="button" class="icon-close" (click)="closeModals()">x</button>
+      </header>
+
+      <label>
+        Nombre
+        <input formControlName="name" />
+      </label>
+      <label>
+        Descripcion
+        <textarea formControlName="description" rows="3"></textarea>
+      </label>
+      <label>
+        Posicion
+        <input type="number" formControlName="position" min="0" />
+      </label>
+      <label class="check">
+        <input type="checkbox" formControlName="isActive" />
+        Activa
+      </label>
+
+      <div class="actions">
+        <button type="submit">Guardar cambios</button>
+        <button type="button" class="secondary" (click)="closeModals()">Cancelar</button>
+      </div>
+    </form>
+  </section>
+}
+
+@if (discountModalOpen()) {
+  <section class="modal-backdrop" role="dialog" aria-modal="true">
+    <form class="modal-panel" [formGroup]="editDiscountForm" (ngSubmit)="saveDiscountEdit()">
+      <header>
+        <h2>Editar descuento</h2>
+        <button type="button" class="icon-close" (click)="closeModals()">x</button>
+      </header>
+
+      <label>
+        Producto
+        <select formControlName="productId">
+          @for (product of products(); track product.id) {
+            <option [value]="product.id">{{ product.name }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Titulo
+        <input formControlName="title" />
+      </label>
+
+      <label>
+        Porcentaje
+        <input type="number" formControlName="percentage" min="1" max="100" />
+      </label>
+
+      <div class="form-row">
+        <label>
+          Inicio
+          <input type="date" formControlName="startsAt" />
+        </label>
+        <label>
+          Fin
+          <input type="date" formControlName="endsAt" />
+        </label>
+      </div>
+
+      <label class="check">
+        <input type="checkbox" formControlName="isActive" />
+        Activo
+      </label>
+
+      <div class="actions">
+        <button type="submit" [disabled]="loading()">Guardar cambios</button>
+        <button type="button" class="secondary" (click)="closeModals()">Cancelar</button>
+      </div>
+    </form>
+  </section>
+}
+
+@if (deleteTarget()) {
+  <section class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-panel confirm-panel">
+      <header>
+        <h2>Confirmar eliminacion</h2>
+        <button type="button" class="icon-close" (click)="closeModals()">x</button>
+      </header>
+      <p>
+        Vas a eliminar <strong>{{ deleteTarget()?.label }}</strong>. Esta accion no se puede deshacer.
+      </p>
+      <div class="actions">
+        <button type="button" class="danger" (click)="confirmDelete()">Eliminar</button>
+        <button type="button" class="secondary" (click)="closeModals()">Cancelar</button>
+      </div>
+    </div>
+  </section>
+}

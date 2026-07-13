@@ -1,0 +1,112 @@
+<section class="products-hero">
+  <div>
+    <p>Catalogo HGW</p>
+    <h1>Productos naturales para bienestar y cuidado diario</h1>
+    <span>{{ products().length }} referencias publicadas con asesoria directa</span>
+  </div>
+  <a href="https://wa.me/573209609091" target="_blank" rel="noreferrer">Consultar por WhatsApp</a>
+</section>
+
+<section class="catalog-shell">
+  @if (loading()) {
+    <p class="state">Cargando productos...</p>
+  } @else if (error()) {
+    <p class="state error">{{ error() }}</p>
+  } @else if (products().length === 0) {
+    <p class="state">Todavia no hay productos publicados.</p>
+  } @else {
+    @for (group of groupedProducts(); track group.category) {
+      <article class="category-block" [id]="categoryDomId(group.category)">
+        <header>
+          <div>
+            <p>Categoria</p>
+            <h2>{{ group.category }}</h2>
+          </div>
+          <span>{{ group.products.length }} productos</span>
+        </header>
+
+        <div class="product-articles">
+          @for (product of visibleProducts(group.category, group.products); track product.id) {
+            <article class="product-card">
+              <div class="product-image">
+                @if (product.imageUrl) {
+                  <img [src]="product.imageUrl" [alt]="product.name" />
+                } @else {
+                  <span class="no-image">Sin foto</span>
+                }
+              </div>
+
+              <div class="product-body">
+                <div class="product-topline">
+                  <span>{{ product.sku || 'HGW' }}</span>
+                  <strong>{{ product.stock }} disponibles</strong>
+                </div>
+
+                <h3>{{ product.name }}</h3>
+                <p>{{ product.description || 'Producto HGW disponible para consulta.' }}</p>
+
+                <div class="product-note">
+                  <strong>Beneficios y uso</strong>
+                  <p>
+                    Ideal para acompanar rutinas de bienestar y cuidado diario. Consulta con Lucy para conocer
+                    disponibilidad, modo de uso y recomendaciones segun tu necesidad.
+                  </p>
+                </div>
+
+                @if (product.careInstructions) {
+                  <small class="care-note">{{ product.careInstructions }}</small>
+                }
+
+                <div class="product-footer">
+                  <div>
+                    @if (product.discountPercentage) {
+                      <span class="old-price">$ {{ product.price | number:'1.0-0' }}</span>
+                      <strong>$ {{ product.discountPrice | number:'1.0-0' }}</strong>
+                      <small>{{ product.discountPercentage }}% de descuento</small>
+                    } @else {
+                      <strong>$ {{ product.price | number:'1.0-0' }}</strong>
+                    }
+                  </div>
+
+                  <a class="product-whatsapp" [href]="whatsappLink(product)" target="_blank" rel="noreferrer">
+                    Consultar
+                  </a>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+
+        @if (totalPages(group.products) > 1) {
+          <nav class="category-pagination" [attr.aria-label]="'Paginacion ' + group.category">
+            <button
+              type="button"
+              [disabled]="currentPage(group.category) === 1"
+              (click)="setCategoryPage(group.category, currentPage(group.category) - 1, group.products)"
+            >
+              Anterior
+            </button>
+
+            @for (page of pages(group.products); track page) {
+              <button
+                type="button"
+                [class.active]="currentPage(group.category) === page"
+                (click)="setCategoryPage(group.category, page, group.products)"
+              >
+                {{ page }}
+              </button>
+            }
+
+            <button
+              type="button"
+              [disabled]="currentPage(group.category) === totalPages(group.products)"
+              (click)="setCategoryPage(group.category, currentPage(group.category) + 1, group.products)"
+            >
+              Siguiente
+            </button>
+          </nav>
+        }
+      </article>
+    }
+  }
+</section>

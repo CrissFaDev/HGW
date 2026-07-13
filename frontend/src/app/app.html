@@ -1,0 +1,42 @@
+<header class="shell-header">
+  <a class="brand" routerLink="/">
+    <span>HGW</span>
+    <small>Contenido administrable</small>
+  </a>
+
+  <nav aria-label="Main navigation">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+    <a routerLink="/productos" routerLinkActive="active">Productos</a>
+    <a routerLink="/admin" routerLinkActive="active">Admin</a>
+  </nav>
+</header>
+
+<main>
+  <router-outlet />
+</main>
+
+<footer class="site-footer">
+  <div class="footer-main">
+    <div>
+      <strong>HGW Colombia</strong>
+      <p>Productos de bienestar, cuidado personal y uso diario con atencion directa por WhatsApp.</p>
+    </div>
+
+    <nav aria-label="Footer navigation">
+      <a routerLink="/">Home</a>
+      <a routerLink="/productos">Productos</a>
+      <a routerLink="/login">Admin</a>
+    </nav>
+  </div>
+  <small>© 2026 · Pagina creada por Cristian Rivera para HGW Colombia.</small>
+</footer>
+
+<a
+  class="whatsapp-float"
+  href="https://wa.me/573209609091"
+  target="_blank"
+  rel="noreferrer"
+  aria-label="Contactar por WhatsApp"
+>
+  WhatsApp
+</a>
